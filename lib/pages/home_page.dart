@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart' as locat;
+import 'package:location/location.dart';
+import 'package:zomato_user/main.dart';
+import 'package:zomato_user/pages/location_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -8,6 +12,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // final dataStore = [];
+
+  @override
+  void initState() {
+     // getLocation();
+    super.initState();
+  }
+
+  String dataStore = "Getting location... ";
+
   final List<dynamic> items = [
     {
       "first": "Phone",
@@ -57,15 +71,27 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.cyanAccent,
       appBar: AppBar(
         backgroundColor: Colors.greenAccent,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Vivekanandapally"),
-            Text(
-              "Kharagpur",
-              style: TextStyle(fontSize: 15, color: Colors.grey),
-            ),
-          ],
+        title: InkWell(
+          onTap: () {
+            getLocation();
+          },
+          child: ListTile(
+            title: Text(dataStore),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LocationPage(subLocal: dataStore),
+                ),
+              ).then((value) {
+                print("back Data $value");
+                dataStore=value;
+                setState(() {
+
+                });
+              },);
+            },
+          ),
         ),
         actions: [
           IconButton(onPressed: () {}, icon: Icon(Icons.currency_rupee_sharp)),
@@ -269,5 +295,48 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  getLocation() async {
+    // from Location Package (see Current location) With latitude and longitude
+    Location location = Location();
+
+    bool serviceEnabled;
+    PermissionStatus permissionGranted;
+    LocationData locationData;
+
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        return;
+      }
+    }
+
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    locationData = await location.getLocation();
+    print(locationData.toString());
+    print(locationData.toString());
+
+    // covertLocationToName Method Call with argument pass (locationData is argument)
+    covertLocationToName(locationData);
+  }
+
+  // from Geocoding package (LocationData is dataType, locationData is parameter) Convert latitude and longitude
+  covertLocationToName(LocationData locationData) async {
+    List<locat.Placemark> placemarks = await locat.placemarkFromCoordinates(
+      locationData.latitude!,
+      locationData.longitude!,
+    );
+    dataStore = placemarks[0].subLocality ?? "";
+
+    setState(() {});
   }
 }
