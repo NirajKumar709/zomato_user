@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:zomato_user/auth_page/registration.dart';
 import 'package:zomato_user/auth_page/sign_in_page.dart';
+
+import '../main.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -34,9 +37,12 @@ class _SignUpPageState extends State<SignUpPage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text("Created account Successfully")),
               );
+
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => SignInPage()),
+                MaterialPageRoute(
+                  builder: (context) => Registration(docId: value.user!.uid),
+                ),
               );
             });
       } on FirebaseAuthException catch (e) {

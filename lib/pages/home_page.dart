@@ -1,8 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart' as locat;
 import 'package:location/location.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zomato_user/auth_page/sign_in_page.dart';
 import 'package:zomato_user/main.dart';
+import 'package:zomato_user/pages/all_restaurant.dart';
 import 'package:zomato_user/pages/location_page.dart';
+import 'package:zomato_user/pages/profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,7 +21,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-     // getLocation();
+    // getLocation();
     super.initState();
   }
 
@@ -65,6 +70,17 @@ class _HomePageState extends State<HomePage> {
     },
   ];
 
+  logOut() async {
+    await FirebaseAuth.instance.signOut();
+    SharedPreferences sf = await SharedPreferences.getInstance();
+    sf.remove("userId").then((value) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => SignInPage()),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,17 +101,20 @@ class _HomePageState extends State<HomePage> {
                 ),
               ).then((value) {
                 print("back Data $value");
-                dataStore=value;
-                setState(() {
-
-                });
-              },);
+                dataStore = value;
+                setState(() {});
+              });
             },
           ),
         ),
         actions: [
           IconButton(onPressed: () {}, icon: Icon(Icons.currency_rupee_sharp)),
-          IconButton(onPressed: () {}, icon: Icon(Icons.person)),
+          IconButton(
+            onPressed: () {
+              logOut();
+            },
+            icon: Icon(Icons.logout),
+          ),
         ],
       ),
       body: Padding(
@@ -277,20 +296,24 @@ class _HomePageState extends State<HomePage> {
         spacing: 30,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          IconButton(onPressed: () {}, icon: Row(children: [Text("Delivery")])),
           IconButton(
-            onPressed: () {},
-            icon: Row(
-              spacing: 5,
-              children: [Icon(Icons.delivery_dining), Text("Delivery")],
-            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AllRestaurant()),
+              );
+            },
+            icon: Row(children: [Text("find restaurant")]),
           ),
           IconButton(
-            onPressed: () {},
-            icon: Row(children: [Icon(Icons.dinner_dining), Text("Dining")]),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: Row(children: [Text("district"), Icon(Icons.arrow_forward)]),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfilePage()),
+              );
+            },
+            icon: Row(children: [Icon(Icons.person), Text("Profile")]),
           ),
         ],
       ),

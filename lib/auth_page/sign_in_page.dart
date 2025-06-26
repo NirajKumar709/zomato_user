@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zomato_user/auth_page/sign_up_page.dart';
 
+import '../main.dart';
 import '../pages/home_page.dart';
 
 class SignInPage extends StatefulWidget {
@@ -33,8 +34,10 @@ class _SignInPageState extends State<SignInPage> {
             .then((value) async {
               // email's data store in SharedPreferences variable.
               SharedPreferences sf = await SharedPreferences.getInstance();
-              sf.setString("userId", value.user!.email!);
-              print(value.user!.email!);
+              sf.setString("userId", value.user!.uid);
+              print(value.user!.uid);
+
+              globalDocId = value.user!.uid;
 
               ScaffoldMessenger.of(
                 context,

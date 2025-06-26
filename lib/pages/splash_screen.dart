@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zomato_user/main.dart';
 import 'package:zomato_user/pages/home_page.dart';
 
 import '../auth_page/sign_in_page.dart';
@@ -25,9 +26,14 @@ class _SplashScreenState extends State<SplashScreen> {
     SharedPreferences sf = await SharedPreferences.getInstance();
     String? data = sf.getString("userId") ?? "";
 
+    print(data);
+    print(globalDocId);
+    print("____________________________________");
+
     Future.delayed(Duration(seconds: 3), () {
       //Before user login, Then if condition otherwise else
       if (data != "") {
+        globalDocId = data;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomePage()),
