@@ -28,21 +28,23 @@ class _ProfilePageState extends State<ProfilePage> {
 
     dataStore = finalData;
     print("____________________________________________");
-    // dataStore.addAll(finalData);
 
     setState(() {});
   }
 
-  updateUserData({required String name, required String address}) {
+  updateUserData({
+    required String name,
+    required String address,
+    required String phoneNumber,
+  }) {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     firestore.collection("users").doc(globalDocId).update({
       "name": name,
       "address": address,
+      "phoneNumber": phoneNumber,
     });
 
     getUserData();
-
-    setState(() {});
   }
 
   @override
@@ -50,67 +52,94 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(title: Text("Your Profile"), centerTitle: true),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          dataStore.isNotEmpty
-              ? ListTile(
-                title: Text(dataStore["name"]),
-                subtitle: Text(dataStore["address"]),
-                trailing: PopupMenuButton(
-                  itemBuilder: (context) {
-                    return [
-                      PopupMenuItem(
-                        child: Text("Edit"),
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) {
-                              TextEditingController nameEdit =
-                                  TextEditingController();
-                              TextEditingController addressEdit =
-                                  TextEditingController();
+          ListTile(
+            title:
+                dataStore.isNotEmpty
+                    ? Text(dataStore["name"] + " Profile")
+                    : Center(child: CircularProgressIndicator()),
+            trailing: PopupMenuButton(
+              itemBuilder: (context) {
+                return [
+                  PopupMenuItem(
+                    child: Text("Edit"),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          TextEditingController nameEdit =
+                              TextEditingController();
+                          TextEditingController addressEdit =
+                              TextEditingController();
+                          TextEditingController phoneEdit =
+                              TextEditingController();
 
-                              return AlertDialog(
-                                content: SingleChildScrollView(
-                                  child: ListBody(
-                                    children: [
-                                      TextFormField(
-                                        controller: nameEdit,
-                                        decoration: InputDecoration(
-                                          hintText: "Name",
-                                        ),
-                                      ),
-                                      TextFormField(
-                                        controller: addressEdit,
-                                        decoration: InputDecoration(
-                                          hintText: "Address",
-                                        ),
-                                      ),
-                                    ],
+                          return AlertDialog(
+                            content: SingleChildScrollView(
+                              child: ListBody(
+                                children: [
+                                  TextFormField(
+                                    controller: nameEdit,
+                                    decoration: InputDecoration(
+                                      hintText: "Name",
+                                    ),
                                   ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      updateUserData(
-                                        name: nameEdit.text,
-                                        address: addressEdit.text,
-                                      );
-                                      dataStore.clear();
-                                      Navigator.pop(context);
-                                    },
-                                    child: Text("Save"),
+                                  TextFormField(
+                                    controller: addressEdit,
+                                    decoration: InputDecoration(
+                                      hintText: "Address",
+                                    ),
+                                  ),
+                                  TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    controller: phoneEdit,
+                                    decoration: InputDecoration(
+                                      hintText: "Phone Number",
+                                    ),
                                   ),
                                 ],
-                              );
-                            },
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  updateUserData(
+                                    name: nameEdit.text,
+                                    address: addressEdit.text,
+                                    phoneNumber: phoneEdit.text,
+                                  );
+                                  dataStore.clear();
+                                  Navigator.pop(context);
+                                },
+                                child: Text("Save"),
+                              ),
+                            ],
                           );
                         },
-                      ),
-                    ];
-                  },
-                ),
-              )
-              : Center(child: CircularProgressIndicator()),
+                      );
+                    },
+                  ),
+                ];
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(15.0),
+            child:
+                dataStore.isNotEmpty
+                    ? Column(
+                      children: [
+                        Text("User Name: " + dataStore["name"]),
+                        Text("User Address: " + dataStore["address"]),
+                        Text(
+                          "User PhoneNumber: " +
+                              dataStore["phoneNumber"].toString(),
+                        ),
+                      ],
+                    )
+                    : Center(child: CircularProgressIndicator()),
+          ),
         ],
       ),
     );
