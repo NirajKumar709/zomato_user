@@ -1,6 +1,12 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:zomato_user/auth_page/sign_in_page.dart';
+
+import '../main.dart';
 
 class Registration extends StatefulWidget {
   final String docId;
@@ -16,6 +22,8 @@ class _RegistrationState extends State<Registration> {
   TextEditingController addressController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
 
+  String storeURL = "";
+
   userRegistrationStore({
     required String name,
     required String address,
@@ -25,8 +33,17 @@ class _RegistrationState extends State<Registration> {
     firestore
         .collection("users")
         .doc(widget.docId)
-        .set({"name": name, "address": address, "phoneNumber": phoneNumber})
+        .set({
+          "name": name,
+          "address": address,
+          "phoneNumber": phoneNumber,
+          "imageURL": storeURL,
+        })
         .then((value) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Registration Successfully")));
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => SignInPage()),
@@ -94,6 +111,12 @@ class _RegistrationState extends State<Registration> {
             ),
             ElevatedButton(
               onPressed: () {
+                imageUpload();
+              },
+              child: Text("Upload your image"),
+            ),
+            ElevatedButton(
+              onPressed: () {
                 userRegistrationStore(
                   name: nameController.text,
                   address: addressController.text,
@@ -106,5 +129,37 @@ class _RegistrationState extends State<Registration> {
         ),
       ),
     );
+  }
+
+  imageUpload() async {
+    final ImagePicker picker = ImagePicker();
+    final img = await picker.pickImage(source: ImageSource.gallery);
+
+    if (img == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please Select Image")));
+    } else {
+      final file = File(img.path);
+
+      final storageRef = FirebaseStorage.instance.ref().child(
+        "user_image/${DateTime.now().millisecondsSinceEpoch}.jpg",
+      );
+
+      try {
+        await storageRef.putFile(file).then((p0) async {
+          final imageUrl = storageRef.getDownloadURL();
+
+          imageURL = await imageUrl;
+          storeURL = await imageUrl;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Image Uploaded Successfully")),
+          );
+        });
+      } catch (e) {
+        print(e);
+      }
+    }
   }
 }

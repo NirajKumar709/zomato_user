@@ -50,14 +50,37 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Your Profile"), centerTitle: true),
+      appBar: AppBar(
+        title: Row(
+          spacing: 12,
+          children: [
+            dataStore.isNotEmpty
+                ? CircleAvatar(
+                  radius: 18,
+                  backgroundImage: NetworkImage(dataStore["imageURL"]),
+                )
+                : Center(child: CircularProgressIndicator()),
+            Text("Your Profile"),
+          ],
+        ),
+        centerTitle: true,
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
             title:
                 dataStore.isNotEmpty
-                    ? Text(dataStore["name"] + " Profile")
+                    ? Row(
+                      spacing: 10,
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(dataStore["imageURL"]),
+                        ),
+                        Text(dataStore["name"] + " Profile"),
+                      ],
+                    )
                     : Center(child: CircularProgressIndicator()),
             trailing: PopupMenuButton(
               itemBuilder: (context) {
@@ -126,19 +149,32 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           Padding(
             padding: const EdgeInsets.all(15.0),
-            child:
-                dataStore.isNotEmpty
-                    ? Column(
-                      children: [
-                        Text("User Name: " + dataStore["name"]),
-                        Text("User Address: " + dataStore["address"]),
-                        Text(
-                          "User PhoneNumber: " +
-                              dataStore["phoneNumber"].toString(),
+            child: Card(
+              child:
+                  dataStore.isNotEmpty
+                      ? ListTile(
+                        title: Text(dataStore["name"]),
+                        subtitle: Text(dataStore["phoneNumber"].toString()),
+                        leading: CircleAvatar(
+                          radius: 18,
+                          backgroundImage: NetworkImage(dataStore["imageURL"]),
                         ),
-                      ],
-                    )
-                    : Center(child: CircularProgressIndicator()),
+                        trailing: Text(dataStore["address"]),
+                      )
+                      : Center(child: CircularProgressIndicator()),
+            ),
+
+            // dataStore.isNotEmpty
+            //     ? Column(
+            //       children: [
+            //         Text("Name: " + dataStore["name"]),
+            //         Text("Address: " + dataStore["address"]),
+            //         Text(
+            //           "PhoneNumber: " + dataStore["phoneNumber"].toString(),
+            //         ),
+            //       ],
+            //     )
+            //     : Center(child: CircularProgressIndicator()),
           ),
         ],
       ),

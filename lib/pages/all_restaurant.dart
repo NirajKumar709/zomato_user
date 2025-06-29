@@ -11,20 +11,11 @@ class AllRestaurant extends StatefulWidget {
 class _AllRestaurantState extends State<AllRestaurant> {
   List<DocumentSnapshot> dataStore = [];
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    getRestaurant();
-    super.initState();
-  }
-
-  getRestaurant() async {
+  Stream<QuerySnapshot> getRestaurant() async* {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     QuerySnapshot snapshot = await firestore.collection("restaurant").get();
 
     dataStore.addAll(snapshot.docs);
-
-    setState(() {});
   }
 
   @override
@@ -34,8 +25,10 @@ class _AllRestaurantState extends State<AllRestaurant> {
       body: Column(
         children: [
           Expanded(
-            child:
-                dataStore.isNotEmpty
+            child: StreamBuilder(
+              stream: getRestaurant(),
+              builder: (context, snapshot) {
+                return dataStore.isNotEmpty
                     ? ListView.builder(
                       itemCount: dataStore.length,
                       itemBuilder: (context, index) {
@@ -46,10 +39,18 @@ class _AllRestaurantState extends State<AllRestaurant> {
                           title: Text(finalData["restaurantName"]),
                           subtitle: Text(finalData["address"]),
                           trailing: Text(finalData["foodType"]),
+                          leading: CircleAvatar(
+                            radius: 20,
+                            backgroundImage: NetworkImage(
+                              finalData["imageURL"],
+                            ),
+                          ),
                         );
                       },
                     )
-                    : Center(child: CircularProgressIndicator()),
+                    : Center(child: CircularProgressIndicator());
+              },
+            ),
           ),
         ],
       ),

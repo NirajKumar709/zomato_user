@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart' as locat;
@@ -17,14 +18,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // final dataStore = [];
-
-  @override
-  void initState() {
-    // getLocation();
-    super.initState();
-  }
-
   String dataStore = "Getting location... ";
 
   final List<dynamic> items = [
@@ -293,10 +286,15 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       bottomNavigationBar: Row(
-        spacing: 30,
+        spacing: 18,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          IconButton(onPressed: () {}, icon: Row(children: [Text("Delivery")])),
+          IconButton(
+            onPressed: () {},
+            icon: Row(
+              children: [Icon(Icons.delivery_dining), Text("Delivery")],
+            ),
+          ),
           IconButton(
             onPressed: () {
               Navigator.push(
@@ -304,7 +302,7 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(builder: (context) => AllRestaurant()),
               );
             },
-            icon: Row(children: [Text("find restaurant")]),
+            icon: Row(children: [Icon(Icons.restaurant), Text("Restaurant")]),
           ),
           IconButton(
             onPressed: () {
@@ -313,11 +311,43 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(builder: (context) => ProfilePage()),
               );
             },
-            icon: Row(children: [Icon(Icons.person), Text("Profile")]),
+            icon: Row(
+              spacing: 5,
+              children: [
+                imageData.isNotEmpty
+                    ? CircleAvatar(
+                      radius: 13,
+                      backgroundImage: NetworkImage(imageData["imageURL"]),
+                    )
+                    : Center(child: CircularProgressIndicator()),
+                Text("Profile"),
+              ],
+            ),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    getImageData();
+    super.initState();
+  }
+
+  Map<String, dynamic> imageData = {};
+
+  getImageData() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    DocumentSnapshot snapshot =
+        await firestore.collection("users").doc(globalDocId).get();
+
+    Map<String, dynamic> finalData = snapshot.data() as Map<String, dynamic>;
+
+    imageData = finalData;
+
+    setState(() {});
   }
 
   getLocation() async {
