@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:zomato_user/main.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -47,6 +51,46 @@ class _ProfilePageState extends State<ProfilePage> {
     getUserData();
   }
 
+  updateImage() async {
+    final ImagePicker picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Select a image")));
+    } else {
+      File file = File(pickedFile.path);
+
+      final storageRef = FirebaseStorage.instance.ref();
+      final childRef = storageRef.child(
+        "user_image/${DateTime.now().millisecondsSinceEpoch}.jpg",
+      );
+
+      await childRef.putFile(file).then((p0) async {
+        String downloadURL = await childRef.getDownloadURL();
+
+        print(downloadURL);
+        print("_____________________________________");
+
+        FirebaseFirestore firestore = FirebaseFirestore.instance;
+        firestore.collection("users").doc(globalDocId).update({
+          "imageURL": downloadURL,
+        });
+
+        imageURL = downloadURL;
+
+        getUserData();
+
+        setState(() {});
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Image Updated Successfully")));
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,9 +118,37 @@ class _ProfilePageState extends State<ProfilePage> {
                     ? Row(
                       spacing: 10,
                       children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundImage: NetworkImage(dataStore["imageURL"]),
+                        Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 25,
+                              backgroundImage: NetworkImage(
+                                dataStore["imageURL"],
+                              ),
+                            ),
+
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: InkWell(
+                                onTap: () {
+                                  updateImage();
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.blue,
+                                  ),
+                                  padding: EdgeInsets.all(5),
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         Text(dataStore["name"] + " Profile"),
                       ],
@@ -163,18 +235,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       )
                       : Center(child: CircularProgressIndicator()),
             ),
-
-            // dataStore.isNotEmpty
-            //     ? Column(
-            //       children: [
-            //         Text("Name: " + dataStore["name"]),
-            //         Text("Address: " + dataStore["address"]),
-            //         Text(
-            //           "PhoneNumber: " + dataStore["phoneNumber"].toString(),
-            //         ),
-            //       ],
-            //     )
-            //     : Center(child: CircularProgressIndicator()),
           ),
         ],
       ),

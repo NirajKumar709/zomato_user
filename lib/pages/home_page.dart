@@ -148,12 +148,14 @@ class _HomePageState extends State<HomePage> {
                 itemCount: items.length,
                 scrollDirection: Axis.horizontal,
                 itemBuilder:
-                    (context, index) => Column(
-                      spacing: 5,
-                      children: [
-                        Image.network(items[index]["image"], height: 65),
-                        Text(items[index]["first"]),
-                      ],
+                    (context, index) => SingleChildScrollView(
+                      child: Column(
+                        spacing: 5,
+                        children: [
+                          Image.network(items[index]["image"], height: 65),
+                          Text(items[index]["first"]),
+                        ],
+                      ),
                     ),
               ),
             ),
@@ -285,44 +287,42 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: Row(
-        spacing: 18,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            onPressed: () {},
-            icon: Row(
-              children: [Icon(Icons.delivery_dining), Text("Delivery")],
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(
+            icon: InkWell(
+              child: Icon(Icons.delivery_dining, size: 30),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AllRestaurant()),
+                );
+              },
             ),
+            label: "Restaurant",
           ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AllRestaurant()),
-              );
-            },
-            icon: Row(children: [Icon(Icons.restaurant), Text("Restaurant")]),
-          ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ProfilePage()),
-              );
-            },
-            icon: Row(
-              spacing: 5,
-              children: [
-                imageData.isNotEmpty
-                    ? CircleAvatar(
-                      radius: 13,
-                      backgroundImage: NetworkImage(imageData["imageURL"]),
-                    )
-                    : Center(child: CircularProgressIndicator()),
-                Text("Profile"),
-              ],
+          BottomNavigationBarItem(
+            icon: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfilePage()),
+                );
+              },
+              child: StreamBuilder(
+                stream: getImageData(),
+                builder: (context, snapshot) {
+                  return imageData.isNotEmpty
+                      ? CircleAvatar(
+                        radius: 15,
+                        backgroundImage: NetworkImage(imageData["imageURL"]),
+                      )
+                      : Center(child: CircularProgressIndicator());
+                },
+              ),
             ),
+            label: "Profile",
           ),
         ],
       ),
@@ -338,7 +338,7 @@ class _HomePageState extends State<HomePage> {
 
   Map<String, dynamic> imageData = {};
 
-  getImageData() async {
+  Stream<Map<String, dynamic>> getImageData() async* {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     DocumentSnapshot snapshot =
         await firestore.collection("users").doc(globalDocId).get();
@@ -346,6 +346,7 @@ class _HomePageState extends State<HomePage> {
     Map<String, dynamic> finalData = snapshot.data() as Map<String, dynamic>;
 
     imageData = finalData;
+    imageURL = finalData["imageURL"];
 
     setState(() {});
   }
