@@ -6,7 +6,7 @@ import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zomato_user/auth_page/sign_in_page.dart';
 import 'package:zomato_user/main.dart';
-import 'package:zomato_user/pages/all_restaurant.dart';
+import 'package:zomato_user/pages/delivery_partner.dart';
 import 'package:zomato_user/pages/location_page.dart';
 import 'package:zomato_user/pages/profile_page.dart';
 
@@ -296,11 +296,11 @@ class _HomePageState extends State<HomePage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AllRestaurant()),
+                  MaterialPageRoute(builder: (context) => DeliveryPartner()),
                 );
               },
             ),
-            label: "Restaurant",
+            label: "Delivery",
           ),
           BottomNavigationBarItem(
             icon: InkWell(
