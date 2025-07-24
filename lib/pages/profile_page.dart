@@ -26,7 +26,7 @@ class _ProfilePageState extends State<ProfilePage> {
   getUserData() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     DocumentSnapshot<Map<String, dynamic>> snapshot =
-        await firestore.collection("users").doc(globalDocId).get();
+        await firestore.collection("users_profile").doc(globalDocId).get();
 
     Map<String, dynamic> finalData = snapshot.data() as Map<String, dynamic>;
 
@@ -42,53 +42,11 @@ class _ProfilePageState extends State<ProfilePage> {
     required String phoneNumber,
   }) {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    firestore.collection("users").doc(globalDocId).update({
+    firestore.collection("users_profile").doc(globalDocId).update({
       "name": name,
       "address": address,
       "phoneNumber": phoneNumber,
     });
-
-    getUserData();
-  }
-
-  updateImage() async {
-    final ImagePicker picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Select a image")));
-    } else {
-      File file = File(pickedFile.path);
-
-      final storageRef = FirebaseStorage.instance.ref();
-      final childRef = storageRef.child(
-        "user_image/${DateTime.now().millisecondsSinceEpoch}.jpg",
-      );
-
-      await childRef.putFile(file).then((p0) async {
-        String downloadURL = await childRef.getDownloadURL();
-
-        print(downloadURL);
-        print("_____________________________________");
-
-        FirebaseFirestore firestore = FirebaseFirestore.instance;
-        firestore.collection("users").doc(globalDocId).update({
-          "imageURL": downloadURL,
-        });
-
-        imageURL = downloadURL;
-
-        getUserData();
-
-        setState(() {});
-
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Image Updated Successfully")));
-      });
-    }
   }
 
   @override
@@ -97,15 +55,7 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: Row(
           spacing: 12,
-          children: [
-            dataStore.isNotEmpty
-                ? CircleAvatar(
-                  radius: 18,
-                  backgroundImage: NetworkImage(dataStore["imageURL"]),
-                )
-                : Center(child: CircularProgressIndicator()),
-            Text("Your Profile"),
-          ],
+          children: [CircleAvatar(radius: 18), Text("Your Profile")],
         ),
         centerTitle: true,
       ),
@@ -120,20 +70,13 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: [
                         Stack(
                           children: [
-                            CircleAvatar(
-                              radius: 25,
-                              backgroundImage: NetworkImage(
-                                dataStore["imageURL"],
-                              ),
-                            ),
+                            CircleAvatar(radius: 25),
 
                             Positioned(
                               bottom: 0,
                               right: 0,
                               child: InkWell(
-                                onTap: () {
-                                  updateImage();
-                                },
+                                onTap: () {},
                                 child: Container(
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
@@ -198,14 +141,16 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             actions: [
                               TextButton(
-                                onPressed: () {
-                                  updateUserData(
+                                onPressed: () async {
+                                  await updateUserData(
                                     name: nameEdit.text,
                                     address: addressEdit.text,
                                     phoneNumber: phoneEdit.text,
                                   );
                                   dataStore.clear();
                                   Navigator.pop(context);
+
+                                  getUserData();
                                 },
                                 child: Text("Save"),
                               ),
@@ -227,10 +172,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ? ListTile(
                         title: Text(dataStore["name"]),
                         subtitle: Text(dataStore["phoneNumber"].toString()),
-                        leading: CircleAvatar(
-                          radius: 18,
-                          backgroundImage: NetworkImage(dataStore["imageURL"]),
-                        ),
+                        leading: CircleAvatar(radius: 18),
                         trailing: Text(dataStore["address"]),
                       )
                       : Center(child: CircularProgressIndicator()),

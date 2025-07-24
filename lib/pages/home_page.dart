@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart' as locat;
 import 'package:location/location.dart';
@@ -8,6 +9,7 @@ import 'package:zomato_user/auth_page/sign_in_page.dart';
 import 'package:zomato_user/main.dart';
 import 'package:zomato_user/pages/delivery_partner.dart';
 import 'package:zomato_user/pages/location_page.dart';
+import 'package:zomato_user/pages/order_item.dart';
 import 'package:zomato_user/pages/profile_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -72,6 +74,24 @@ class _HomePageState extends State<HomePage> {
         MaterialPageRoute(builder: (context) => SignInPage()),
       );
     });
+  }
+
+  @override
+  void initState() {
+    restaurantFoodItem();
+    super.initState();
+  }
+
+  List<DocumentSnapshot> foodData = [];
+
+  Future<void> restaurantFoodItem() async {
+    FirebaseFirestore firebase = FirebaseFirestore.instance;
+    QuerySnapshot restaurantSnapshot =
+        await firebase.collection("restaurant_profile").get();
+
+    foodData.addAll(restaurantSnapshot.docs);
+
+    setState(() {});
   }
 
   @override
@@ -140,149 +160,141 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            Image.network(
-              "https://www.shutterstock.com/image-photo/shopping-online-ordering-product-using-260nw-2150537657.jpg",
-            ),
             Expanded(
-              child: ListView.builder(
-                itemCount: items.length,
-                scrollDirection: Axis.horizontal,
-                itemBuilder:
-                    (context, index) => SingleChildScrollView(
-                      child: Column(
-                        spacing: 5,
-                        children: [
-                          Image.network(items[index]["image"], height: 65),
-                          Text(items[index]["first"]),
-                        ],
+              child:
+                  foodData.isEmpty
+                      ? Center(child: CircularProgressIndicator())
+                      : ListView.builder(
+                        itemCount: foodData.length,
+                        itemBuilder: (context, index) {
+                          Map<String, dynamic> finalData =
+                              foodData[index].data() as Map<String, dynamic>;
+
+                          List<dynamic> imageUrls = finalData["imageURL"];
+                          String? finalImageURL;
+                          for (var url in imageUrls) {
+                            // print(url);
+
+                            finalImageURL = url;
+                          }
+
+                          return finalData.isEmpty
+                              ? Center(child: CircularProgressIndicator())
+                              : Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 15,
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.black),
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  height: 315,
+                                  width: 330,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(25),
+                                          topRight: Radius.circular(25),
+                                        ),
+                                        child:
+                                            finalImageURL!.isEmpty
+                                                ? Center(
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                )
+                                                : Image.network(
+                                                  finalImageURL,
+                                                  height: 200,
+                                                  width: double.infinity,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              finalData["restaurantName"],
+                                              style: TextStyle(
+                                                fontSize: 25,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.red,
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                              ),
+                                              alignment: Alignment.center,
+                                              width: 45,
+                                              height: 30,
+                                              child: Text(
+                                                "4.6*",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(finalData["foodType"]),
+                                            Container(
+                                              alignment: Alignment.center,
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue,
+                                                borderRadius:
+                                                    BorderRadius.circular(25),
+                                              ),
+                                              height: 35,
+                                              width: 110,
+                                              child: TextButton(
+                                                onPressed: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder:
+                                                          (
+                                                            context,
+                                                          ) => OrderItem(
+                                                            restaurantId:
+                                                                foodData[index]
+                                                                    .id,
+                                                          ),
+                                                    ),
+                                                  );
+                                                },
+                                                child: Text(
+                                                  "Order Now",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                        },
                       ),
-                    ),
-              ),
-            ),
-            Row(
-              spacing: 10,
-              children: [
-                Container(
-                  width: 100,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [Icon(Icons.filter), Text("Filters")],
-                  ),
-                ),
-                Container(
-                  width: 100,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [Icon(Icons.filter), Text("Filters")],
-                  ),
-                ),
-                Container(
-                  width: 100,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [Icon(Icons.filter), Text("Filters")],
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text("EXPLORE MORE", style: TextStyle(color: Colors.grey)),
-              ],
-            ),
-            Row(
-              spacing: 10,
-              children: [
-                Container(
-                  width: 75,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.network(
-                        "https://img.freepik.com/premium-vector/special-offer-banner-red-yellow-flag-shape_78946-860.jpg?semt=ais_hybrid&w=740",
-                        height: 50,
-                      ),
-                      Text("Offers"),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 75,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.network(
-                        "https://img.freepik.com/free-vector/3d-metal-star-isolated_1308-117760.jpg?semt=ais_hybrid&w=740",
-                        height: 50,
-                      ),
-                      Text("Top 10"),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 75,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.network(
-                        "https://img.freepik.com/premium-vector/realistic-train-vector-illustration-concept_1253202-29241.jpg?semt=ais_hybrid&w=740",
-                        height: 30,
-                      ),
-                      Text("Food"),
-                      Text("on train"),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 75,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.network(
-                        "https://www.shutterstock.com/image-vector/berger-character-logo-street-food-600nw-2622309653.jpg",
-                        height: 50,
-                      ),
-                      Text("Collections", style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                ),
-              ],
             ),
           ],
         ),
@@ -310,47 +322,13 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(builder: (context) => ProfilePage()),
                 );
               },
-              child: StreamBuilder(
-                stream: getImageData(),
-                builder: (context, snapshot) {
-                  return imageData.isNotEmpty
-                      ? CircleAvatar(
-                        radius: 15,
-                        backgroundImage: NetworkImage(imageData["imageURL"]),
-                      )
-                      : Center(child: CircularProgressIndicator());
-                },
-              ),
+              child: CircleAvatar(radius: 15),
             ),
             label: "Profile",
           ),
         ],
       ),
     );
-  }
-
-
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    getImageData();
-    super.initState();
-  }
-
-  Map<String, dynamic> imageData = {};
-
-  Stream<Map<String, dynamic>> getImageData() async* {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    DocumentSnapshot snapshot =
-        await firestore.collection("users").doc(globalDocId).get();
-
-    Map<String, dynamic> finalData = snapshot.data() as Map<String, dynamic>;
-
-    imageData = finalData;
-    imageURL = finalData["imageURL"];
-
-    setState(() {});
   }
 
   getLocation() async {
