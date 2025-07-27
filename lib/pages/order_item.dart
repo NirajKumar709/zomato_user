@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:zomato_user/pages/show_select_items.dart';
+
+import '../main.dart';
 
 class OrderItem extends StatefulWidget {
   String restaurantId;
@@ -174,22 +177,198 @@ class _OrderItemState extends State<OrderItem> {
                                                     ),
                                                   ),
                                                   onPressed: () {
+                                                    foodPrices =
+                                                        finalData["foodPrice"];
+                                                    updateFoodPrice =
+                                                        foodPrices;
+
+                                                    foodItemImage =
+                                                        finalData["imageURL"];
+
+                                                    restaurantItemName =
+                                                        finalData["foodName"];
+
                                                     showModalBottomSheet(
+                                                      context: context,
+                                                      isScrollControlled: true,
                                                       shape: RoundedRectangleBorder(
                                                         borderRadius:
                                                             BorderRadius.vertical(
                                                               top:
                                                                   Radius.circular(
-                                                                    25,
+                                                                    20,
                                                                   ),
                                                             ),
                                                       ),
-                                                      context: context,
                                                       builder: (context) {
-                                                        return Column(
-                                                          children: [
-                                                            Text("data"),
-                                                          ],
+                                                        return StatefulBuilder(
+                                                          builder: (
+                                                            BuildContext
+                                                            context,
+                                                            StateSetter
+                                                            bottomSheetSetState,
+                                                          ) {
+                                                            return Container(
+                                                              height: 400,
+                                                              padding:
+                                                                  EdgeInsets.all(
+                                                                    16,
+                                                                  ),
+                                                              child: Column(
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .start,
+                                                                children: [
+                                                                  // Title
+                                                                  Row(
+                                                                    children: [
+                                                                      CircleAvatar(
+                                                                        backgroundImage:
+                                                                            NetworkImage(
+                                                                              finalData["imageURL"],
+                                                                            ),
+                                                                        radius:
+                                                                            24,
+                                                                      ),
+                                                                      SizedBox(
+                                                                        width:
+                                                                            12,
+                                                                      ),
+                                                                      Expanded(
+                                                                        child: Text(
+                                                                          finalData["foodName"],
+                                                                          style: TextStyle(
+                                                                            fontSize:
+                                                                                16,
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      IconButton(
+                                                                        icon: Icon(
+                                                                          Icons
+                                                                              .close,
+                                                                        ),
+                                                                        onPressed:
+                                                                            () => Navigator.pop(
+                                                                              context,
+                                                                            ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  SizedBox(
+                                                                    height: 16,
+                                                                  ),
+
+                                                                  Spacer(),
+
+                                                                  Row(
+                                                                    children: [
+                                                                      Container(
+                                                                        decoration: BoxDecoration(
+                                                                          border: Border.all(
+                                                                            color:
+                                                                                Colors.red,
+                                                                          ),
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(
+                                                                                8,
+                                                                              ),
+                                                                        ),
+                                                                        child: Row(
+                                                                          children: [
+                                                                            IconButton(
+                                                                              icon: Icon(
+                                                                                Icons.remove,
+                                                                                color:
+                                                                                    Colors.red,
+                                                                              ),
+                                                                              onPressed: () async {
+                                                                                await decrement();
+                                                                                selectedItemCount =
+                                                                                    count.toString();
+                                                                                bottomSheetSetState(
+                                                                                  () {},
+                                                                                );
+                                                                              },
+                                                                            ),
+                                                                            Text(
+                                                                              "$count",
+                                                                              style: TextStyle(
+                                                                                fontSize:
+                                                                                    16,
+                                                                              ),
+                                                                            ),
+                                                                            IconButton(
+                                                                              icon: Icon(
+                                                                                Icons.add,
+                                                                                color:
+                                                                                    Colors.red,
+                                                                              ),
+                                                                              onPressed: () async {
+                                                                                await increment();
+                                                                                selectedItemCount =
+                                                                                    count.toString();
+                                                                                bottomSheetSetState(
+                                                                                  () {},
+                                                                                );
+                                                                              },
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(
+                                                                        width:
+                                                                            12,
+                                                                      ),
+                                                                      Expanded(
+                                                                        child: ElevatedButton(
+                                                                          style: ElevatedButton.styleFrom(
+                                                                            backgroundColor:
+                                                                                Colors.red,
+                                                                            shape: RoundedRectangleBorder(
+                                                                              borderRadius: BorderRadius.circular(
+                                                                                8,
+                                                                              ),
+                                                                            ),
+                                                                            padding: EdgeInsets.symmetric(
+                                                                              vertical:
+                                                                                  15,
+                                                                            ),
+                                                                          ),
+                                                                          onPressed: () {
+                                                                            selectedItemPrice =
+                                                                                updateFoodPrice!;
+
+                                                                            Navigator.push(
+                                                                              context,
+                                                                              MaterialPageRoute(
+                                                                                builder:
+                                                                                    (
+                                                                                      context,
+                                                                                    ) =>
+                                                                                        ShowSelectItems(),
+                                                                              ),
+                                                                            );
+                                                                          },
+                                                                          child: Text(
+                                                                            "Add item ₹$updateFoodPrice",
+                                                                            style: TextStyle(
+                                                                              fontSize:
+                                                                                  16,
+                                                                              color:
+                                                                                  Colors.white,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            );
+                                                          },
                                                         );
                                                       },
                                                     );
@@ -212,5 +391,33 @@ class _OrderItemState extends State<OrderItem> {
         ),
       ),
     );
+  }
+
+  String? foodPrices;
+
+  int count = 1;
+  String? updateFoodPrice;
+
+  increment() {
+    count++;
+
+    int priceConvertInt = int.parse(foodPrices!);
+    var multipleFoodPrice = priceConvertInt * count;
+    updateFoodPrice = multipleFoodPrice.toString();
+
+    setState(() {});
+  }
+
+  decrement() {
+    if (count > 1) {
+      count--;
+
+      int priceConvertInt = int.parse(updateFoodPrice!);
+      int foodPricesConvertInt = int.parse(foodPrices!);
+      var multipleFoodPrice = priceConvertInt - foodPricesConvertInt;
+      updateFoodPrice = multipleFoodPrice.toString();
+    }
+
+    setState(() {});
   }
 }

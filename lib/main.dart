@@ -6,6 +6,12 @@ import 'firebase_options.dart';
 String globalDocId = "";
 String imageURL = "";
 
+String restaurantName = "";
+String restaurantItemName = "";
+String foodItemImage = "";
+String selectedItemCount = "";
+String selectedItemPrice = "";
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

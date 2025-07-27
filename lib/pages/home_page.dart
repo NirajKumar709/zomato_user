@@ -264,6 +264,8 @@ class _HomePageState extends State<HomePage> {
                                               width: 110,
                                               child: TextButton(
                                                 onPressed: () {
+                                                  restaurantName =
+                                                      finalData["restaurantName"];
                                                   Navigator.push(
                                                     context,
                                                     MaterialPageRoute(
