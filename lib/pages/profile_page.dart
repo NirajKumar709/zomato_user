@@ -31,6 +31,9 @@ class _ProfilePageState extends State<ProfilePage> {
     Map<String, dynamic> finalData = snapshot.data() as Map<String, dynamic>;
 
     dataStore = finalData;
+    userName = finalData["name"];
+    userPhoneNumber = finalData["phoneNumber"];
+
     print("____________________________________________");
 
     setState(() {});

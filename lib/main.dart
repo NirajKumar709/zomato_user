@@ -11,6 +11,12 @@ String restaurantItemName = "";
 String foodItemImage = "";
 String selectedItemCount = "";
 String selectedItemPrice = "";
+String userName = "";
+String userPhoneNumber = "";
+
+String currentAddress = "";
+String subLocalityName = "";
+String localityName = "";
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
