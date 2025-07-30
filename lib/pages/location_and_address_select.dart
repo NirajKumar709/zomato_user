@@ -4,6 +4,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:zomato_user/main.dart';
 import 'package:zomato_user/pages/address_delivery_at_home.dart';
+import 'package:zomato_user/pages/show_select_items.dart';
 
 class LocationAndAddressSelect extends StatefulWidget {
   double latitude;
@@ -65,6 +66,18 @@ class _LocationAndAddressSelectState extends State<LocationAndAddressSelect> {
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(25)),
             hintText: "Search for area, street",
             isDense: true,
+          ),
+        ),
+        leading: Center(
+          child: IconButton(
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => ShowSelectItems()),
+                (route) => false,
+              );
+            },
+            icon: Icon(Icons.arrow_back),
           ),
         ),
       ),
@@ -203,19 +216,28 @@ class _LocationAndAddressSelectState extends State<LocationAndAddressSelect> {
       currentAddress = address;
 
       FirebaseFirestore firestore = FirebaseFirestore.instance;
-      await firestore
-          .collection("users_profile")
-          .doc(globalDocId)
-          .collection("adject_address")
-          .doc()
-          .set({
-            "current_address": address,
-            "subLocalityName": subLocalityName,
-            "localityName": localityName,
-          });
+
+      final docId =
+          firestore
+              .collection("users_profile")
+              .doc(globalDocId)
+              .collection("adject_address")
+              .doc();
+
+      final finalDocId = docId.id;
+
+      await docId.set({
+        "current_address": address,
+        "subLocalityName": subLocalityName,
+        "localityName": localityName,
+        "docId": finalDocId,
+      });
+
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => AddressDeliveryAtHome()),
+        MaterialPageRoute(
+          builder: (context) => AddressDeliveryAtHome(dataDocId: finalDocId),
+        ),
       );
     } else {
       ScaffoldMessenger.of(

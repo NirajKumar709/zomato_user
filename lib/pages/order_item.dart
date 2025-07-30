@@ -250,10 +250,13 @@ class _OrderItemState extends State<OrderItem> {
                                                                           Icons
                                                                               .close,
                                                                         ),
-                                                                        onPressed:
-                                                                            () => Navigator.pop(
-                                                                              context,
-                                                                            ),
+                                                                        onPressed: () {
+                                                                          count =
+                                                                              1;
+                                                                          Navigator.pop(
+                                                                            context,
+                                                                          );
+                                                                        },
                                                                       ),
                                                                     ],
                                                                   ),

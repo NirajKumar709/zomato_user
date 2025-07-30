@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:zomato_user/main.dart';
+import 'package:zomato_user/pages/address_delivery_at_home.dart';
 import 'package:zomato_user/pages/location_and_address_select.dart';
 
 class ShowSelectItems extends StatefulWidget {
@@ -105,103 +107,198 @@ class _ShowSelectItemsState extends State<ShowSelectItems> {
               borderRadius: BorderRadius.circular(5),
             ),
           ),
-          onPressed: () {
+          onPressed: () async {
+            await getDataForDelivery();
             showModalBottomSheet(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               context: context,
               builder: (context) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                return StatefulBuilder(
+                  builder: (
+                    BuildContext context,
+                    StateSetter bottomSheetSetState,
+                  ) {
+                    return SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Select an address',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            icon: Icon(Icons.close),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Divider(),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: InkWell(
-                        onTap: () {
-                          if (_latitude != null || _longitude != null) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => LocationAndAddressSelect(
-                                      latitude: _latitude!,
-                                      longitude: _longitude!,
-                                    ),
-                              ),
-                            );
-                          } else {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: Text("Location Permission Required"),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text("Cancel"),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                        openSettings();
-                                        getCurrentLocation();
-
-                                        setState(() {});
-                                      },
-                                      child: Text("Open Settings"),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-
-                            setState(() {});
-                          }
-                        },
-                        child: Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
+                          Padding(
+                            padding: const EdgeInsets.all(15.0),
                             child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Icon(Icons.add),
-                                Text("Add Address"),
-                                Spacer(),
-                                Icon(Icons.arrow_forward_ios_rounded),
+                                Text(
+                                  'Select an address',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    dataStore.clear();
+                                    Navigator.pop(context);
+                                    setState(() {});
+                                  },
+                                  icon: Icon(Icons.close),
+                                ),
                               ],
                             ),
                           ),
-                        ),
+                          Divider(),
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: InkWell(
+                              onTap: () {
+                                if (_latitude != null || _longitude != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => LocationAndAddressSelect(
+                                            latitude: _latitude!,
+                                            longitude: _longitude!,
+                                          ),
+                                    ),
+                                  );
+                                  dataStore.clear();
+                                } else {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: Text(
+                                          "Location Permission Required",
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text("Cancel"),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                              openSettings();
+                                              getCurrentLocation();
+
+                                              bottomSheetSetState(() {});
+                                            },
+                                            child: Text("Open Settings"),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+
+                                  bottomSheetSetState(() {});
+                                }
+                              },
+                              child: Column(
+                                children: [
+                                  Card(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.add),
+                                          Text("Add Address"),
+                                          Spacer(),
+                                          Icon(Icons.arrow_forward_ios_rounded),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Column(
+                                    children: [
+                                      dataStore.isEmpty
+                                          ? Center(
+                                            child: CircularProgressIndicator(),
+                                          )
+                                          : ListView.builder(
+                                            itemCount: dataStore.length,
+                                            shrinkWrap: true,
+                                            physics:
+                                                NeverScrollableScrollPhysics(),
+                                            itemBuilder: (context, index) {
+                                              String dataDocId =
+                                                  dataStore[index].id;
+
+                                              Map<String, dynamic> finalData =
+                                                  dataStore[index].data()
+                                                      as Map<String, dynamic>;
+
+                                              return Card(
+                                                child: ListTile(
+                                                  onTap: () {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder:
+                                                            (context) =>
+                                                                AddressDeliveryAtHome(
+                                                                  dataDocId:
+                                                                      dataDocId,
+                                                                ),
+                                                      ),
+                                                    );
+                                                  },
+                                                  title: Text(
+                                                    "Delivery at Home",
+                                                  ),
+                                                  subtitle: Text(
+                                                    "${finalData["current_address"]}, ${finalData["subLocalityName"]}, ${finalData["localityName"]}",
+                                                  ),
+                                                  trailing: PopupMenuButton(
+                                                    itemBuilder:
+                                                        (context) => [
+                                                          PopupMenuItem(
+                                                            onTap: () {
+                                                              deleteDocId(
+                                                                docId:
+                                                                    dataDocId,
+                                                              );
+                                                              Navigator.pushAndRemoveUntil(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (
+                                                                        context,
+                                                                      ) =>
+                                                                          ShowSelectItems(),
+                                                                ),
+                                                                (route) =>
+                                                                    false,
+                                                              );
+                                                            },
+                                                            child: Text(
+                                                              "Delete",
+                                                            ),
+                                                          ),
+                                                        ],
+                                                  ),
+                                                  leading: Icon(Icons.home),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 );
               },
             );
+            setState(() {});
           },
           child: Text(
             "Select Address at next step",
@@ -210,5 +307,31 @@ class _ShowSelectItemsState extends State<ShowSelectItems> {
         ),
       ),
     );
+  }
+
+  List<DocumentSnapshot> dataStore = [];
+
+  getDataForDelivery() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    QuerySnapshot snapshot =
+        await firestore
+            .collection("users_profile")
+            .doc(globalDocId)
+            .collection("adject_address")
+            .get();
+
+    dataStore.addAll(snapshot.docs);
+
+    setState(() {});
+  }
+
+  deleteDocId({required String docId}) {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    firestore
+        .collection("users_profile")
+        .doc(globalDocId)
+        .collection("adject_address")
+        .doc(docId)
+        .delete();
   }
 }
